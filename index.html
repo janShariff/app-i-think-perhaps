@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Conlang Gen">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5f2eb">
+<link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conlang Root Generator</title>
+    <style>
+        :root {
+            --bg: #f5f2eb;
+            --panel-bg: #fffdf7;
+            --border: #d6cdb5;
+            --accent: #8b6f47;
+            --accent2: #b68b5c;
+            --text: #3a3226;
+            --light-text: #6b5e4f;
+            --held-border: #5e8b5c;
+            --held-bg: #eaf4e8;
+            --btn: #8b6f47;
+            --btn-hover: #6f5837;
+            --danger: #b0453a;
+            --danger-hover: #8b342a;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        button {
+            background: var(--btn);
+            color: white;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        button:hover {
+            background: var(--btn-hover);
+        }
+        button.secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--border);
+        }
+        button.secondary:hover {
+            background: #f0ebe0;
+        }
+        button.danger {
+            background: var(--danger);
+        }
+        button.danger:hover {
+            background: var(--danger-hover);
+        }
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 1px;
+            background: var(--border);
+        }
+        .panel {
+            background: var(--panel-bg);
+            overflow-y: auto;
+            padding: 1rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        #phonologyPanel {
+            flex: 0 0 280px;
+        }
+        #generatorPanel {
+            flex: 0 0 340px;
+        }
+        #lexiconPanel {
+            flex: 1;
+            min-width: 300px;
+        }
+        .panel h2 {
+            font-size: 1.1rem;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.3rem;
+            margin-bottom: 0.2rem;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .field label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--light-text);
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            padding: 0.4rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: white;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .category-item {
+            background: #faf8f3;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .category-header input {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .category-header .delete-cat {
+            margin-left: auto;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+        }
+        .slider-value {
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-left: 0.3rem;
+        }
+        .generator-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .candidate-list {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            background: #fefef9;
+            min-height: 150px;
+        }
+        .candidate-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.3rem;
+            border-radius: 4px;
+            margin-bottom: 0.2rem;
+            font-size: 1rem;
+            transition: background 0.15s;
+        }
+        .candidate-item.held {
+            background: var(--held-bg);
+            border: 1px solid var(--held-border);
+            font-weight: 600;
+        }
+        .candidate-item .word {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.05em;
+        }
+        .candidate-item input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+        .lexicon-search {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .tag-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin: 0.3rem 0;
+        }
+        .tag-chip {
+            background: #ede4d3;
+            border: 1px solid #cfbe9e;
+            border-radius: 12px;
+            padding: 0.15rem 0.6rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .tag-chip.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .lexicon-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .lexicon-table th {
+            text-align: left;
+            background: #f2ede3;
+            padding: 0.4rem 0.5rem;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+        .lexicon-table td {
+            padding: 0.3rem 0.5rem;
+            border-bottom: 1px solid #e8e0d2;
+            vertical-align: top;
+        }
+        .lexicon-table tr:hover {
+            background: #fdfaf3;
+        }
+        .lexicon-table .actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        .lexicon-table .actions button {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            min-width: 350px;
+            max-width: 500px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .modal h3 {
+            margin: 0;
+            color: var(--accent);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .empty-message {
+            color: #aaa;
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
+        }
+        @media (max-width: 900px) {
+            main {
+                flex-direction: column;
+            }
+            #phonologyPanel, #generatorPanel, #lexiconPanel {
+                flex: unset;
+                width: 100%;
+                max-height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌿 Conlang Root Generator</h1>
+        <div class="header-buttons">
+            <button id="importBtn" class="secondary">📂 Import</button>
+            <button id="exportBtn" class="secondary">💾 Export</button>
+        </div>
+    </header>
+    <main>
+        <!-- Phonology Panel -->
+        <section id="phonologyPanel" class="panel">
+            <h2>🎛️ Phonology</h2>
+            <div class="field">
+                <label>Categories (single letter)</label>
+                <div id="categoriesContainer"></div>
+                <button id="addCategoryBtn" class="secondary" style="align-self:flex-start;">+ Add Category</button>
+            </div>
+            <div class="field">
+                <label for="templateInput">Syllable Template</label>
+                <input type="text" id="templateInput" value="(C)V(C)" placeholder="e.g. (C)V(C)">
+                <span style="font-size:0.75rem;color:var(--light-text);">Use single-letter categories. Parentheses for optional.</span>
+            </div>
+            <div class="field">
+                <label>Optional Probability <span id="optProbDisplay" class="slider-value">0.50</span></label>
+                <input type="range" id="optProbSlider" min="0" max="1" step="0.05" value="0.5">
+            </div>
+            <div class="field">
+                <label for="maxSyllablesInput">Max Syllables</label>
+                <input type="number" id="maxSyllablesInput" value="2" min="1" max="6" step="1">
+            </div>
+            <div class="field">
+                <label for="separatorInput">Syllable Separator</label>
+                <input type="text" id="separatorInput" value="" placeholder="e.g. -">
+            </div>
+        </section>
+
+        <!-- Generator Panel -->
+        <section id="generatorPanel" class="panel">
+            <h2>⚡ Generator</h2>
+            <div class="generator-controls">
+                <div class="field" style="flex-direction:row;align-items:center;gap:0.3rem;">
+                    <label for="batchSizeInput" style="white-space:nowrap;">Batch:</label>
+                    <input type="number" id="batchSizeInput" value="10" min="1" max="100" style="width:60px;">
+                </div>
+                <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;">
+                    <input type="checkbox" id="avoidDupCheckbox" checked> Avoid lexicon duplicates
+                </label>
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <button id="generateNewBtn">🎲 New Batch</button>
+                <button id="rerollUnheldBtn" class="secondary" disabled>🔄 Re-roll Unheld</button>
+                <button id="clearHoldsBtn" class="secondary" style="font-size:0.8rem;">✕ Clear Holds</button>
+            </div>
+            <div class="candidate-list" id="candidateList">
+                <div class="empty-message">Press "New Batch" to generate roots</div>
+            </div>
+        </section>
+
+        <!-- Lexicon Panel -->
+        <section id="lexiconPanel" class="panel">
+            <h2>📚 Lexicon</h2>
+            <div class="lexicon-search">
+                <input type="text" id="lexiconSearch" placeholder="Search words, meanings..." style="flex:1;">
+                <button id="addWordBtn">➕ Add Word</button>
+            </div>
+            <div class="tag-chips" id="tagChipsContainer"></div>
+            <div style="overflow-y:auto;flex:1;">
+                <table class="lexicon-table" id="lexiconTable">
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Tags</th>
+                            <th>Meaning</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lexiconBody"></tbody>
+                </table>
+                <div id="lexiconEmpty" class="empty-message" style="display:none;">No entries yet. Add words from generator or manually.</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for adding/editing words -->
+    <div id="wordModal" class="modal-overlay" style="display:none;">
+        <div class="modal">
+            <h3 id="modalTitle">Add Word</h3>
+            <div class="field">
+                <label>Word</label>
+                <input type="text" id="modalWord" placeholder="conlang root">
+            </div>
+            <div class="field">
+                <label>Tags (comma separated)</label>
+                <input type="text" id="modalTags" placeholder="noun, body part">
+            </div>
+            <div class="field">
+                <label>Meaning (English)</label>
+                <input type="text" id="modalMeaning" placeholder="hand">
+            </div>
+            <div class="field">
+                <label>Notes</label>
+                <textarea id="modalNotes" rows="2" placeholder="etymology, usage..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button id="modalCancel" class="secondary">Cancel</button>
+                <button id="modalSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- State ---
+            const state = {
+                categories: {
+                    'C': ['p', 't', 'k', 'b', 'd', 'g', 'm', 'n', 'ŋ'],
+                    'V': ['a', 'e', 'i', 'o', 'u'],
+                    'F': ['f', 's', 'x', 'h'],
+                    'N': ['m', 'n', 'ŋ'],
+                    'L': ['l', 'r', 'w', 'j']
+                },
+                template: '(C)V(C)',
+                optionalProbability: 0.5,
+                maxSyllables: 2,
+                syllableSeparator: '',
+                lexicon: [
+                    { id: 1, word: 'toka', tags: ['noun', 'body part'], meaning: 'hand', notes: '' },
+                    { id: 2, word: 'mira', tags: ['verb'], meaning: 'to see', notes: 'basic perception' }
+                ],
+                nextId: 3,
+                heldWords: [], // strings
+                currentBatch: [], // strings currently displayed
+                activeTagFilter: null,
+                searchQuery: ''
+            };
+
+            // --- Utility Functions ---
+            function saveState() {
+                localStorage.setItem('conlangToolState', JSON.stringify({
+                    categories: state.categories,
+                    template: state.template,
+                    optionalProbability: state.optionalProbability,
+                    maxSyllables: state.maxSyllables,
+                    syllableSeparator: state.syllableSeparator,
+                    lexicon: state.lexicon,
+                    nextId: state.nextId
+                }));
+            }
+
+            function loadState() {
+                const saved = localStorage.getItem('conlangToolState');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        state.categories = data.categories || state.categories;
+                        state.template = data.template || '(C)V(C)';
+                        state.optionalProbability = data.optionalProbability ?? 0.5;
+                        state.maxSyllables = data.maxSyllables || 2;
+                        state.syllableSeparator = data.syllableSeparator || '';
+                        state.lexicon = data.lexicon || [];
+                        state.nextId = data.nextId || 1;
+                    } catch (e) {
+                        console.warn('Could not parse saved state, using defaults.');
+                    }
+                }
+            }
+
+            // --- Phonology Rendering ---
+            function renderCategories() {
+                const container = document.getElementById('categoriesContainer');
+                container.innerHTML = '';
+                Object.entries(state.categories).forEach(([name, symbols]) => {
+                    const div = document.createElement('div');
+                    div.className = 'category-item';
+                    div.innerHTML = `
+                        <div class="category-header">
+                            <input type="text" class="cat-name" value="${escapeHtml(name)}" maxlength="1" placeholder="C">
+                            <span style="font-size:0.8rem;color:var(--light-text);">symbols:</span>
+                            <button class="delete-cat danger">🗑</button>
+                        </div>
+                        <textarea class="cat-symbols" rows="2" placeholder="one per line">${symbols.join('\n')}</textarea>
+                    `;
+                    const nameInput = div.querySelector('.cat-name');
+                    const symbolsTextarea = div.querySelector('.cat-symbols');
+                    const deleteBtn = div.querySelector('.delete-cat');
+
+                    nameInput.addEventListener('input', () => {
+                        const newName = nameInput.value.trim();
+                        if (newName && newName !== name) {
+                            if (state.categories[newName]) {
+                                alert('Category name already exists.');
+                                nameInput.value = name;
+                                return;
+                            }
+                            delete state.categories[name];
+                            state.categories[newName] = symbols;
+                            renderCategories();
+                            saveState();
+                        }
+                    });
+
+                    symbolsTextarea.addEventListener('input', () => {
+                        const lines = symbolsTextarea.value.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+                        state.categories[name] = lines;
+                        saveState();
+                    });
+
+                    deleteBtn.addEventListener('click', () => {
+                        if (Object.keys(state.categories).length <= 1) {
+                            alert('You need at least one category.');
+                            return;
+                        }
+                        delete state.categories[name];
+                        renderCategories();
+                        saveState();
+                    });
+
+                    container.appendChild(div);
+                });
+            }
+
+            document.getElementById('addCategoryBtn').addEventListener('click', () => {
+                const newName = prompt('Enter a single letter for the new category:');
+                if (!newName || newName.length !== 1) return;
+                if (state.categories[newName]) {
+                    alert('Category already exists.');
+                    return;
+                }
+                state.categories[newName] = [];
+                renderCategories();
+                saveState();
+            });
+
+            // --- Template Parsing ---
+            function parseTemplate(templateStr) {
+                const tokens = [];
+                let i = 0;
+                while (i < templateStr.length) {
+                    const ch = templateStr[i];
+                    if (ch === '(') {
+                        const end = templateStr.indexOf(')', i);
+                        if (end === -1) throw new Error('Unmatched parenthesis in template.');
+                        const inside = templateStr.slice(i+1, end);
+                        const sequence = inside.split('').filter(c => c.trim() !== '');
+                        tokens.push({ type: 'optional', sequence });
+                        i = end + 1;
+                    } else if (ch === ')') {
+                        throw new Error('Unexpected closing parenthesis.');
+                    } else if (ch.trim() === '') {
+                        i++;
+                    } else {
+                        tokens.push({ type: 'required', sequence: [ch] });
+                        i++;
+                    }
+                }
+                return tokens;
+            }
+
+            // --- Generator Logic ---
+            function generateSyllable(tokens, categories, prob) {
+                let result = '';
+                for (const token of tokens) {
+                    if (token.type === 'required') {
+                        for (const cat of token.sequence) {
+                            const symbols = categories[cat];
+                            if (!symbols || symbols.length === 0) throw new Error(`Category "${cat}" is empty or undefined.`);
+                            result += symbols[Math.floor(Math.random() * symbols.length)];
+                        }
+                    } else { // optional
+                        if (Math.random() < prob) {
+                            for (const cat of token.sequence) {
+                                const symbols = categories[cat];
+                                if (!symbols || symbols.length === 0) throw new Error(`Category "${cat}" is empty or undefined.`);
+                                result += symbols[Math.floor(Math.random() * symbols.length)];
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function generateWord(tokens, categories, prob, maxSyll, separator) {
+                const numSyll = Math.floor(Math.random() * maxSyll) + 1;
+                const syllables = [];
+                for (let s = 0; s < numSyll; s++) {
+                    syllables.push(generateSyllable(tokens, categories, prob));
+                }
+                return syllables.join(separator);
+            }
+
+            function getLexiconWordSet() {
+                return new Set(state.lexicon.map(entry => entry.word));
+            }
+
+            function generateUniqueBatch(size, avoidDup, heldWords, maxAttempts = 1000) {
+                const tokens = parseTemplate(state.template);
+                const categories = state.categories;
+                const prob = state.optionalProbability;
+                const maxSyll = state.maxSyllables;
+                const sep = state.syllableSeparator;
+                const lexiconSet = avoidDup ? getLexiconWordSet() : new Set();
+                const heldSet = new Set(heldWords);
+                const result = [...heldWords];
+                const used = new Set([...heldSet, ...lexiconSet]);
+                let attempts = 0;
+
+                while (result.length < size && attempts < maxAttempts) {
+                    const word = generateWord(tokens, categories, prob, maxSyll, sep);
+                    if (!used.has(word) && !heldSet.has(word)) {
+                        result.push(word);
+                        used.add(word);
+                    }
+                    attempts++;
+                }
+                if (result.length < size) {
+                    alert(`Could only generate ${result.length} unique words after ${maxAttempts} attempts. Consider expanding categories or relaxing constraints.`);
+                }
+                return result;
+            }
+
+            function renderGenerator() {
+                const listDiv = document.getElementById('candidateList');
+                listDiv.innerHTML = '';
+                if (state.currentBatch.length === 0) {
+                    listDiv.innerHTML = '<div class="empty-message">Press "New Batch" to generate roots</div>';
+                } else {
+                    state.currentBatch.forEach(word => {
+                        const held = state.heldWords.includes(word);
+                        const item = document.createElement('div');
+                        item.className = `candidate-item ${held ? 'held' : ''}`;
+                        item.innerHTML = `
+                            <input type="checkbox" class="hold-checkbox" ${held ? 'checked' : ''}>
+                            <span class="word">${escapeHtml(word)}</span>
+                            <button class="add-candidate-btn secondary" style="font-size:0.8rem;">➕ Save</button>
+                        `;
+                        const checkbox = item.querySelector('.hold-checkbox');
+                        checkbox.addEventListener('change', (e) => {
+                            if (e.target.checked) {
+                                if (!state.heldWords.includes(word)) state.heldWords.push(word);
+                            } else {
+                                state.heldWords = state.heldWords.filter(w => w !== word);
+                            }
+                            renderGenerator();
+                            updateRerollButton();
+                        });
+                        item.querySelector('.add-candidate-btn').addEventListener('click', () => {
+                            openModalForWord(word);
+                        });
+                        listDiv.appendChild(item);
+                    });
+                }
+                updateRerollButton();
+            }
+
+            function updateRerollButton() {
+                const btn = document.getElementById('rerollUnheldBtn');
+                btn.disabled = state.heldWords.length === 0;
+            }
+
+            function generateNewBatch() {
+                const batchSize = parseInt(document.getElementById('batchSizeInput').value, 10) || 10;
+                const avoidDup = document.getElementById('avoidDupCheckbox').checked;
+                state.heldWords = [];
+                state.currentBatch = generateUniqueBatch(batchSize, avoidDup, []);
+                renderGenerator();
+            }
+
+            function rerollUnheld() {
+                const batchSize = parseInt(document.getElementById('batchSizeInput').value, 10) || 10;
+                const avoidDup = document.getElementById('avoidDupCheckbox').checked;
+                const held = [...state.heldWords];
+                const newBatch = generateUniqueBatch(batchSize, avoidDup, held);
+                state.currentBatch = newBatch;
+                renderGenerator();
+            }
+
+            // --- Lexicon Rendering ---
+            function getFilteredLexicon() {
+                let entries = [...state.lexicon];
+                if (state.activeTagFilter) {
+                    entries = entries.filter(e => e.tags.includes(state.activeTagFilter));
+                }
+                if (state.searchQuery) {
+                    const q = state.searchQuery.toLowerCase();
+                    entries = entries.filter(e => 
+                        e.word.toLowerCase().includes(q) ||
+                        e.meaning.toLowerCase().includes(q) ||
+                        (e.notes && e.notes.toLowerCase().includes(q))
+                    );
+                }
+                return entries;
+            }
+
+            function renderLexicon() {
+                const tbody = document.getElementById('lexiconBody');
+                const emptyMsg = document.getElementById('lexiconEmpty');
+                const entries = getFilteredLexicon();
+                tbody.innerHTML = '';
+                if (entries.length === 0) {
+                    emptyMsg.style.display = 'block';
+                } else {
+                    emptyMsg.style.display = 'none';
+                    entries.forEach(entry => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${escapeHtml(entry.word)}</strong></td>
+                            <td>${entry.tags.map(t => `<span class="tag-chip" style="cursor:pointer;">${escapeHtml(t)}</span>`).join(' ')}</td>
+                            <td>${escapeHtml(entry.meaning)}</td>
+                            <td style="font-size:0.8rem;color:var(--light-text);">${escapeHtml(entry.notes || '')}</td>
+                            <td class="actions">
+                                <button class="edit-entry-btn secondary">✏️</button>
+                                <button class="delete-entry-btn danger">🗑</button>
+                            </td>
+                        `;
+                        tr.querySelector('.edit-entry-btn').addEventListener('click', () => openModalForEdit(entry));
+                        tr.querySelector('.delete-entry-btn').addEventListener('click', () => {
+                            if (confirm(`Delete "${entry.word}"?`)) {
+                                state.lexicon = state.lexicon.filter(e => e.id !== entry.id);
+                                saveState();
+                                renderLexicon();
+                                renderTagChips();
+                            }
+                        });
+                        tbody.appendChild(tr);
+                    });
+                }
+                renderTagChips();
+            }
+
+            function renderTagChips() {
+                const container = document.getElementById('tagChipsContainer');
+                const allTags = new Set();
+                state.lexicon.forEach(e => e.tags.forEach(t => allTags.add(t)));
+                const tags = Array.from(allTags).sort();
+                container.innerHTML = tags.map(t => {
+                    const active = state.activeTagFilter === t ? 'active' : '';
+                    return `<span class="tag-chip ${active}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`;
+                }).join('');
+                container.querySelectorAll('.tag-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        const tag = chip.dataset.tag;
+                        if (state.activeTagFilter === tag) {
+                            state.activeTagFilter = null;
+                        } else {
+                            state.activeTagFilter = tag;
+                        }
+                        renderLexicon();
+                    });
+                });
+                if (tags.length === 0) {
+                    container.innerHTML = '<span style="font-size:0.8rem;color:var(--light-text);">No tags yet</span>';
+                }
+            }
+
+            // --- Modal Handling ---
+            let modalCallback = null;
+            const modal = document.getElementById('wordModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalWord = document.getElementById('modalWord');
+            const modalTags = document.getElementById('modalTags');
+            const modalMeaning = document.getElementById('modalMeaning');
+            const modalNotes = document.getElementById('modalNotes');
+
+            function openModalForWord(word) {
+                modalTitle.textContent = 'Add Word to Lexicon';
+                modalWord.value = word;
+                modalTags.value = '';
+                modalMeaning.value = '';
+                modalNotes.value = '';
+                modalCallback = (data) => {
+                    addWordToLexicon(data);
+                };
+                modal.style.display = 'flex';
+                modalWord.focus();
+            }
+
+            function openModalForEdit(entry) {
+                modalTitle.textContent = 'Edit Word';
+                modalWord.value = entry.word;
+                modalTags.value = entry.tags.join(', ');
+                modalMeaning.value = entry.meaning;
+                modalNotes.value = entry.notes || '';
+                modalCallback = (data) => {
+                    updateWordInLexicon(entry.id, data);
+                };
+                modal.style.display = 'flex';
+                modalWord.focus();
+            }
+
+            function closeModal() {
+                modal.style.display = 'none';
+                modalCallback = null;
+            }
+
+            document.getElementById('modalCancel').addEventListener('click', closeModal);
+            document.getElementById('modalSave').addEventListener('click', () => {
+                const word = modalWord.value.trim();
+                if (!word) {
+                    alert('Word cannot be empty.');
+                    return;
+                }
+                const tagsStr = modalTags.value.trim();
+                const tags = tagsStr ? tagsStr.split(',').map(s => s.trim()).filter(s => s.length > 0) : [];
+                const meaning = modalMeaning.value.trim();
+                const notes = modalNotes.value.trim();
+                if (modalCallback) {
+                    modalCallback({ word, tags, meaning, notes });
+                }
+                closeModal();
+            });
+
+            function addWordToLexicon({ word, tags, meaning, notes }) {
+                // Check duplicate
+                if (state.lexicon.some(e => e.word === word)) {
+                    if (!confirm(`Word "${word}" already exists. Add anyway?`)) return;
+                }
+                state.lexicon.push({
+                    id: state.nextId++,
+                    word,
+                    tags,
+                    meaning,
+                    notes
+                });
+                saveState();
+                renderLexicon();
+                renderTagChips();
+                // remove from current batch if present
+                state.currentBatch = state.currentBatch.filter(w => w !== word);
+                state.heldWords = state.heldWords.filter(w => w !== word);
+                renderGenerator();
+            }
+
+            function updateWordInLexicon(id, { word, tags, meaning, notes }) {
+                const entry = state.lexicon.find(e => e.id === id);
+                if (!entry) return;
+                // Check duplicate excluding self
+                if (state.lexicon.some(e => e.word === word && e.id !== id)) {
+                    if (!confirm(`Word "${word}" already exists. Update anyway?`)) return;
+                }
+                entry.word = word;
+                entry.tags = tags;
+                entry.meaning = meaning;
+                entry.notes = notes;
+                saveState();
+                renderLexicon();
+                renderTagChips();
+            }
+
+            document.getElementById('addWordBtn').addEventListener('click', () => {
+                openModalForWord('');
+            });
+
+            // --- Import/Export ---
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                const data = {
+                    categories: state.categories,
+                    template: state.template,
+                    optionalProbability: state.optionalProbability,
+                    maxSyllables: state.maxSyllables,
+                    syllableSeparator: state.syllableSeparator,
+                    lexicon: state.lexicon,
+                    nextId: state.nextId
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'conlang-project.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            document.getElementById('importBtn').addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
+                            const data = JSON.parse(ev.target.result);
+                            if (!data.categories || !data.template || !data.lexicon) {
+                                throw new Error('Invalid project file structure.');
+                            }
+                            state.categories = data.categories;
+                            state.template = data.template;
+                            state.optionalProbability = data.optionalProbability ?? 0.5;
+                            state.maxSyllables = data.maxSyllables || 2;
+                            state.syllableSeparator = data.syllableSeparator || '';
+                            state.lexicon = data.lexicon;
+                            state.nextId = data.nextId || (Math.max(0, ...state.lexicon.map(e => e.id)) + 1);
+                            state.heldWords = [];
+                            state.currentBatch = [];
+                            state.activeTagFilter = null;
+                            state.searchQuery = '';
+                            document.getElementById('templateInput').value = state.template;
+                            document.getElementById('optProbSlider').value = state.optionalProbability;
+                            document.getElementById('optProbDisplay').textContent = state.optionalProbability.toFixed(2);
+                            document.getElementById('maxSyllablesInput').value = state.maxSyllables;
+                            document.getElementById('separatorInput').value = state.syllableSeparator;
+                            document.getElementById('lexiconSearch').value = '';
+                            saveState();
+                            renderCategories();
+                            renderGenerator();
+                            renderLexicon();
+                        } catch (err) {
+                            alert('Error importing file: ' + err.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            });
+
+            // --- Event Listeners for Phonology Controls ---
+            document.getElementById('templateInput').addEventListener('input', (e) => {
+                state.template = e.target.value.trim();
+                saveState();
+            });
+            document.getElementById('optProbSlider').addEventListener('input', (e) => {
+                state.optionalProbability = parseFloat(e.target.value);
+                document.getElementById('optProbDisplay').textContent = state.optionalProbability.toFixed(2);
+                saveState();
+            });
+            document.getElementById('maxSyllablesInput').addEventListener('input', (e) => {
+                state.maxSyllables = parseInt(e.target.value, 10) || 1;
+                saveState();
+            });
+            document.getElementById('separatorInput').addEventListener('input', (e) => {
+                state.syllableSeparator = e.target.value;
+                saveState();
+            });
+            document.getElementById('generateNewBtn').addEventListener('click', generateNewBatch);
+            document.getElementById('rerollUnheldBtn').addEventListener('click', rerollUnheld);
+            document.getElementById('clearHoldsBtn').addEventListener('click', () => {
+                state.heldWords = [];
+                renderGenerator();
+            });
+            document.getElementById('lexiconSearch').addEventListener('input', (e) => {
+                state.searchQuery = e.target.value;
+                renderLexicon();
+            });
+            document.getElementById('avoidDupCheckbox').addEventListener('change', () => {
+                // no immediate action needed
+            });
+
+            // Helper escape
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // --- Initialization ---
+            loadState();
+            document.getElementById('templateInput').value = state.template;
+            document.getElementById('optProbSlider').value = state.optionalProbability;
+            document.getElementById('optProbDisplay').textContent = state.optionalProbability.toFixed(2);
+            document.getElementById('maxSyllablesInput').value = state.maxSyllables;
+            document.getElementById('separatorInput').value = state.syllableSeparator;
+            renderCategories();
+            renderGenerator();
+            renderLexicon();
+            saveState();
+        })();
+    </script>
+</body>
+</html>
